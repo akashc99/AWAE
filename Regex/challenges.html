@@ -1,0 +1,469 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Regex Challenges for OSWE Prep</title>
+  <!-- Embedded CSS -->
+  <style>
+    /* style.css content */
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f9fafb;
+      margin: 0;
+      padding: 30px;
+      color: #333;
+    }
+    h1, h2, h3 {
+      color: #1f2937;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    h2 {
+        margin-top: 40px; /* Add more space before major sections */
+        margin-bottom: 15px;
+        border-bottom: 1px solid #e5e7eb; /* Add subtle separator */
+        padding-bottom: 5px;
+    }
+    h3 {
+        margin-top: 25px;
+    }
+    textarea {
+      width: 100%;
+      height: 200px;
+      background: #f3f4f6;
+      border: 1px solid #d1d5db;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+      font-family: monospace;
+      box-sizing: border-box; /* Include padding and border in the element's total width and height */
+      white-space: pre; /* Prevent auto-wrapping in textarea */
+      overflow-x: scroll; /* Allow horizontal scrolling */
+    }
+    /* Shared style for challenge boxes and cheatsheet/pattern sections */
+    .challenge, .cheatsheet-section, .pattern-section {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 30px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+    }
+    pre {
+      background: #f3f4f6;
+      padding: 10px;
+      border-radius: 8px;
+      overflow-x: auto;
+      white-space: pre-wrap; /* Wrap long lines within pre block */
+      word-wrap: break-word; /* Break long words if necessary */
+    }
+    code {
+      background-color: #e5e7eb; /* Light gray background for inline code */
+      padding: 0.2em 0.4em;
+      margin: 0;
+      font-size: 0.9em;
+      border-radius: 3px;
+      font-family: monospace;
+    }
+    pre code { /* Reset background for code inside pre blocks */
+        background: none;
+        padding: 0;
+        margin: 0;
+        font-size: inherit; /* Inherit size from pre */
+        border-radius: 0;
+    }
+    /* Styles specific to challenges.html */
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+      margin: 10px 0;
+      font-family: monospace;
+      box-sizing: border-box; /* Include padding and border */
+    }
+    button {
+      margin-right: 10px;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      background-color: #2563eb;
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+      margin-top: 5px; /* Add space for buttons */
+    }
+    button:hover {
+      background-color: #1e40af;
+    }
+    .show-answer {
+      background-color: #10b981;
+    }
+    .show-answer:hover {
+      background-color: #047857;
+    }
+    .result {
+      margin-top: 15px; /* Increased space above result */
+      font-weight: bold;
+    }
+    .result pre { /* Style pre blocks within results */
+        margin-top: 5px;
+        font-size: 0.9em;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
+    .correct {
+      color: #16a34a;
+    }
+    .incorrect {
+      color: #dc2626;
+    }
+    .answer {
+      display: none;
+      margin-top: 15px; /* Increased space above answer */
+      font-style: italic;
+      color: #6b7280;
+      background: #f3f4f6; /* Background for answer block */
+      padding: 10px; /* Padding for answer block */
+      border-radius: 8px; /* Rounded corners for answer block */
+    }
+    .answer code {
+        font-style: normal; /* Code inside answer shouldn't be italic */
+        color: #374151; /* Darker color for code */
+        word-wrap: break-word; /* Allow long regexes to wrap */
+        white-space: normal; /* Override pre formatting if needed */
+    }
+    .answer pre code { /* Specific styling for code within pre in answer */
+        white-space: pre-wrap; /* Ensure wrapping works */
+    }
+    /* Styles specific to cheatsheet.html and patterns.html */
+     dt {
+        font-weight: bold;
+        margin-top: 10px;
+    }
+    dd {
+        margin-left: 20px;
+        margin-bottom: 10px;
+    }
+    dl {
+        margin-top: 0;
+    }
+    .pattern-section h3 { /* Adjust heading margin for pattern list */
+        margin-top: 15px;
+        margin-bottom: 10px;
+    }
+    .pattern-section p {
+        margin-top: 0;
+    }
+    .pattern-section pre {
+        margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Regex Practice Challenges</h1>
+  <p>Use regular expressions to detect insecure code patterns below. Input your regex into the text box for each challenge and click "Test". If you're stuck, click "Show Answer" to reveal a correct pattern. Your goal is to create a pattern that finds the potentially insecure lines/constructs listed in the "Expected" results for each challenge.</p>
+
+  <h2>Complete Code Snippet Context</h2>
+  <textarea readonly>$query = "SELECT * FROM users WHERE id = '$id'";
+$result = mysqli_query($conn, "INSERT INTO logs (data) VALUES ('test')"); // Static query example
+$safe_query = $pdo->prepare("SELECT * FROM safe_table WHERE name = :name"); // Safe prepared statement
+
+eval($user_input); // Potential RCE
+$result = eval("2 + 2"); // Dynamic eval, less risky context here
+$safe_eval = some_safe_function("code"); // Not eval
+
+include "config.php"; // Static include
+include $_GET['page'] . ".php"; // Potential LFI/RFI
+require_once "static_file.php"; // Static require
+
+system("ls " . $_POST['cmd']); // Potential command injection
+exec("ping -c 1 " . $_GET['host']); // Potential command injection
+shell_exec("echo 'safe'"); // Static command execution
+passthru("id"); // Potential command injection (no user input shown, but function is dangerous)
+$output = `ls -la`; // Backtick operator execution
+
+echo $_GET['input']; // Potential XSS
+print "<div>" . $_POST['data'] . "</div>"; // Potential XSS
+echo htmlspecialchars($_GET['safe']); // Mitigated XSS
+echo "User token: " . $_COOKIE['session_id']; // Potential XSS from cookie
+
+$stmt = $pdo->prepare("SELECT * FROM users WHERE id = " . $_GET['id']); // SQLi via concatenation in prepare()
+$query = "SELECT * FROM logs WHERE data = '" . $_POST['data'] . "' OR 1=1"; // Classic SQLi example
+$safe_stmt = $pdo->prepare("SELECT * FROM safe_table WHERE id = :id"); // Safe prepared statement
+
+// This is a comment
+$config['db_user'] = 'root'; # Another comment
+/* Multi-line
+   Comment */
+$secret_key = "hardcoded_secret";
+$token = $_COOKIE['session_token'];
+$db_pass = "s3cretP@ssw0rd";
+$apiKey = 'abc123xyz789';
+$username = "guest"; // Not a secret
+$secret = get_secret_from_vault();</textarea>
+
+  <div id="challenges">
+      <!-- Challenges will be inserted here by JavaScript -->
+  </div>
+
+  <!-- Embedded JavaScript -->
+  <script>
+    // script.js content
+    const challenges = {
+      1: {
+        title: "Identify Basic SQL Query Strings",
+        desc: "Detect string literals containing SQL commands (SELECT, INSERT, UPDATE, DELETE). This is a basic check and doesn't imply vulnerability on its own.",
+        sample: `$query = "SELECT * FROM users WHERE id = '$id'";\n$result = mysqli_query($conn, "INSERT INTO logs (data) VALUES ('test')");\n$safe_query = $pdo->prepare("SELECT * FROM safe_table WHERE name = :name");`,
+        expected: [
+            `"SELECT * FROM users WHERE id = '$id'"`,
+            `"INSERT INTO logs (data) VALUES ('test')"`,
+            `"SELECT * FROM safe_table WHERE name = :name"`
+        ],
+        answer: `["']\\s*(SELECT|INSERT|UPDATE|DELETE)\\b[^"']*["']`
+      },
+      2: {
+        title: "Detect \`eval\` Function Usage",
+        desc: "Find instances of the potentially dangerous \`eval\` function call.",
+        sample: `eval($user_input);\n$result = eval("2 + 2");\n$safe_eval = some_safe_function("code");`,
+        expected: [`eval($user_input);`, `eval("2 + 2");`],
+        answer: `\\beval\\s*\\(.*?\\);`
+      },
+      3: {
+        title: "Detect Dynamic File Inclusion",
+        desc: "Identify file inclusion (\`include\`, \`require\`) using dynamic sources like \`$_GET\`, \`$_POST\`, \`$_REQUEST\`.",
+        sample: `include "config.php";\ninclude $_GET['page'] . ".php";\nrequire_once "static_file.php";`,
+        expected: [`include $_GET['page'] . ".php";`],
+        answer: `\\b(include|require)(_once)?\\s+[^;]*\\$_(GET|POST|REQUEST)\\[.*?\\][^;]*;`
+      },
+      4: {
+        title: "Find OS Command Execution Functions",
+        desc: "Spot functions (\`system\`, \`exec\`, \`shell_exec\`, \`passthru\`, backticks) often used for command execution.",
+        sample: `system("ls " . $_POST['cmd']);\nexec("ping -c 1 " . $_GET['host']);\nshell_exec("echo 'safe'");\npassthru("id");\n$output = \`ls -la\`;`,
+        expected: [
+          `system("ls " . $_POST['cmd']);`,
+          `exec("ping -c 1 " . $_GET['host']);`,
+          `shell_exec("echo 'safe'");`,
+          `passthru("id");`,
+          `$output = \`ls -la\`;`
+        ],
+        answer: `(?:\\b(system|exec|shell_exec|passthru)\\s*\\(.*?\\)|\\$\\w+\\s*=\\s*\`.+?\`)\\s*;`
+      },
+      5: {
+        title: "Detect Direct Output of User Input (Potential XSS)",
+        desc: "Identify where raw user input (\`$_GET\`, \`$_POST\`, \`$_REQUEST\`, \`$_COOKIE\`) is directly output using \`echo\` or \`print\`, without proper sanitization/encoding.",
+        sample: `echo $_GET['input'];\nprint "<div>" . $_POST['data'] . "</div>";\necho htmlspecialchars($_GET['safe']);\necho "User token: " . $_COOKIE['session_id'];`,
+        expected: [
+            `echo $_GET['input'];`,
+            `print "<div>" . $_POST['data'] . "</div>";`,
+            `echo "User token: " . $_COOKIE['session_id'];`
+        ],
+        answer: `\\b(echo|print)\\s+(?!.*?\\b(?:htmlspecialchars|htmlentities|filter_var)\\s*\\([^)]*\\$_(?:GET|POST|REQUEST|COOKIE)\\[)[^;]*\\$_(GET|POST|REQUEST|COOKIE)\\[.*?\\][^;]*;`
+      },
+      6: {
+        title: "Find SQL Injection via String Concatenation",
+        desc: "Detect potential SQL injection where user input is concatenated directly into SQL query strings, even within \`prepare\` calls (which defeats the purpose of prepared statements).",
+        sample: `$stmt = $pdo->prepare("SELECT * FROM users WHERE id = " . $_GET['id']);\n$query = "SELECT * FROM logs WHERE data = '" . $_POST['data'] . "' OR 1=1";\n$safe_stmt = $pdo->prepare("SELECT * FROM safe_table WHERE id = :id");`,
+        expected: [`$stmt = $pdo->prepare("SELECT * FROM users WHERE id = " . $_GET['id']);`, `$query = "SELECT * FROM logs WHERE data = '" . $_POST['data'] . "' OR 1=1";`],
+        answer: `^.*?(?:\\bprepare\\s*\\(\\s*|\\$\\w+\\s*=\\s*)["'].*?(?:\\bSELECT\\b|\\bINSERT\\b|\\bUPDATE\\b|\\bDELETE\\b).*?\\.\\s*\\$_(GET|POST|REQUEST)\\[.*?;$`
+      },
+      7: {
+        title: "Identify Direct Superglobal Variable Access",
+        desc: "Find lines where superglobal arrays like \`$_GET\`, \`$_POST\`, \`$_REQUEST\`, \`$_COOKIE\` are accessed directly.",
+        sample: `$name = $_GET['user'];\n$id = filter_input(INPUT_POST, 'id'); // Safe input retrieval\necho "Hello " . $name;\n$token = $_COOKIE['session_token'];`,
+        expected: [
+            `$name = $_GET['user'];`,
+            `$token = $_COOKIE['session_token'];`
+        ],
+        answer: `^.*\\$_(GET|POST|REQUEST|COOKIE)\\[.*?;`
+      },
+      8: {
+        title: "Detect Code Comments",
+        desc: "Find single-line (\`//\`, \`#\`) or multi-line (\`/* ... */\`) comments. Comments can sometimes contain sensitive information or outdated code.",
+        sample: `// User authentication check\n$user = 'admin'; # TODO: Remove hardcoded user\n/*\n Old logic here\n Maybe credentials?\n*/\n$debug = true; // Enable debugging`,
+        expected: [
+            `// User authentication check`,
+            `# TODO: Remove hardcoded user`,
+            `/*\n Old logic here\n Maybe credentials?\n*/`,
+            `// Enable debugging`
+        ],
+        answer: `\\/\\/.*|#.*|\\/\\*[\\s\\S]*?\\*\\/`
+      },
+      9: {
+        title: "Find Simple Hardcoded Strings (Potential Secrets)",
+        desc: "Look for assignments of string literals to variables commonly used for passwords or keys. *Note: High chance of false positives!*",
+        sample: `$db_pass = "s3cretP@ssw0rd";\n$apiKey = 'abc123xyz789';\n$username = "guest"; // Not a secret\n$secret = get_secret_from_vault();`,
+        expected: [
+            `$db_pass = "s3cretP@ssw0rd";`,
+            `$apiKey = 'abc123xyz789';`
+        ],
+        answer: `\\$(?:password|passwd|pass|secret|key|api_?key)\\s*=\\s*["'].+?["'];`
+      }
+    }; // End of challenges object
+
+    // Function to escape HTML special characters for safe display
+    function escapeHtml(unsafe) {
+        if (typeof unsafe !== 'string') {
+            return unsafe; // Return non-strings as is
+        }
+        return unsafe
+             .replace(/&/g, "&amp;")
+             .replace(/</g, "&lt;")
+             .replace(/>/g, "&gt;")
+             .replace(/"/g, "&quot;")
+             .replace(/'/g, "&#039;");
+    }
+
+    // --- Generate Challenges ---
+    // Ensure the script runs after the DOM is loaded
+    document.addEventListener('DOMContentLoaded', () => {
+        const challengesContainer = document.getElementById('challenges');
+        if (!challengesContainer) {
+            console.error("Challenge container div not found!");
+            return;
+        }
+
+        Object.entries(challenges).forEach(([id, data]) => {
+          const div = document.createElement('div');
+          div.className = 'challenge'; // Use the shared class
+          const escapedSample = escapeHtml(data.sample);
+          const escapedAnswer = escapeHtml(data.answer);
+          const escapedDesc = escapeHtml(data.desc);
+          const escapedTitle = escapeHtml(data.title);
+
+          div.innerHTML = `
+            <h3>Challenge ${id}: ${escapedTitle}</h3>
+            <p>${escapedDesc}</p>
+            <h4>Sample Code:</h4>
+            <pre>${escapedSample}</pre>
+            <input type="text" id="pattern${id}" placeholder="Enter your regex pattern here">
+            <button onclick="testPattern(${id})">Test</button>
+            <button class="show-answer" onclick="toggleAnswer(${id})">Show Answer</button>
+            <div id="result${id}" class="result"></div>
+            <div id="answer${id}" class="answer">Correct Pattern: <pre><code>${escapedAnswer}</code></pre></div>
+          `;
+          challengesContainer.appendChild(div);
+        });
+    }); // End DOMContentLoaded listener
+
+
+    // --- Challenge Functions ---
+    // These need to be global or attached to window if called via inline onclick handlers
+    function toggleAnswer(id) {
+      const ans = document.getElementById(`answer${id}`);
+      if (ans) {
+          ans.style.display = ans.style.display === 'block' ? 'none' : 'block';
+      }
+    }
+
+    function testPattern(id) {
+      const patternInput = document.getElementById(`pattern${id}`);
+      const resultEl = document.getElementById(`result${id}`);
+      if (!patternInput || !resultEl || !challenges[id]) {
+          console.error(`Elements for challenge ${id} not found.`);
+          return;
+      }
+
+      const pattern = patternInput.value;
+      const input = challenges[id].sample; // Use original unescaped sample for matching
+      const expected = challenges[id].expected; // Use original expected strings
+
+      if (!pattern) {
+          resultEl.innerHTML = `<span class="incorrect">❌ Please enter a regex pattern.</span>`;
+          return;
+      }
+
+      try {
+        // Add 'm' flag for ^ and $ to match start/end of lines, 'g' for global search
+        const regex = new RegExp(pattern, 'gm');
+        let matches = [];
+        let match;
+        while ((match = regex.exec(input)) !== null) {
+            if (match.index === regex.lastIndex) {
+                regex.lastIndex++;
+            }
+            // Push the trimmed full match
+            matches.push(match[0].trim());
+        }
+        // Deduplicate matches found by the user's regex
+        matches = [...new Set(matches)];
+
+
+        // Normalize expected results (trim whitespace)
+        const normalizedExpected = expected.map(item => item.trim());
+
+        let correctMatchesFound = []; // Store the actual expected items that were found/matched
+        let missedExpected = [...normalizedExpected]; // Track expected items not found
+        let extraMatches = []; // Store matches that don't correspond to any expected item
+
+        // Create a copy of matches to iterate over and remove found items
+        let currentMatches = [...matches];
+
+        // Check which expected items are found within the matches
+        normalizedExpected.forEach(expectedItem => {
+            let foundThisExpected = false;
+            for (let i = currentMatches.length - 1; i >= 0; i--) {
+                const currentMatch = currentMatches[i];
+                // Check for match: exact, contains, or is contained by (flexible)
+                if (currentMatch === expectedItem || currentMatch.includes(expectedItem) || expectedItem.includes(currentMatch)) {
+                   correctMatchesFound.push(expectedItem); // Add the *expected* item that was matched
+                   currentMatches.splice(i, 1); // Remove the match from the list to check for extras
+                   foundThisExpected = true;
+                   break; // Found this expected item, move to the next one
+                }
+            }
+            if (foundThisExpected) {
+                // Remove from missed list
+                const indexInMissed = missedExpected.indexOf(expectedItem);
+                if (indexInMissed > -1) {
+                    missedExpected.splice(indexInMissed, 1);
+                }
+            }
+        });
+
+        // Remaining items in currentMatches are extra
+        extraMatches = currentMatches;
+
+        // Deduplicate final lists just in case
+        correctMatchesFound = [...new Set(correctMatchesFound)];
+        missedExpected = [...new Set(missedExpected)];
+        extraMatches = [...new Set(extraMatches)];
+
+
+        // Build HTML output
+        let html = ``;
+        if (missedExpected.length === 0 && extraMatches.length === 0 && correctMatchesFound.length === normalizedExpected.length) {
+           // Perfect match
+           html += `✅ <span class="correct">Correct! Found all ${normalizedExpected.length} expected items perfectly.</span>`;
+           if (correctMatchesFound.length > 0) {
+               html += `<br><strong>Matched Correctly:</strong><br><pre>${escapeHtml(correctMatchesFound.join('\n'))}</pre>`;
+           }
+        } else {
+            // Partial match, missed items, or extra items
+            html += `📝 <span class="correct">Found ${correctMatchesFound.length} of ${normalizedExpected.length} expected items.</span>`;
+             if (correctMatchesFound.length > 0) {
+               html += `<br><strong>Matched Correctly:</strong><br><pre>${escapeHtml(correctMatchesFound.join('\n'))}</pre>`;
+            }
+            if (missedExpected.length > 0) {
+              html += `<br>❌ <span class="incorrect">Missed (${missedExpected.length}):</span><br><pre>${escapeHtml(missedExpected.join('\n'))}</pre>`;
+            }
+            if (extraMatches.length > 0) {
+              // Display extra matches found by the user's regex
+              html += `<br>⚠️ <span class="incorrect">Found Extra/Incorrect (${extraMatches.length}):</span><br><pre>${escapeHtml(extraMatches.join('\n'))}</pre>`;
+            }
+        }
+
+        resultEl.innerHTML = html;
+
+      } catch (e) {
+        resultEl.innerHTML = `<span class="incorrect">❌ Invalid regex: ${e.message}</span>`;
+        console.error("Regex Error:", e); // Log error to console for debugging
+      }
+    }
+  </script>
+</body>
+</html>
