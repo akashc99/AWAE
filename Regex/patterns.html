@@ -1,0 +1,229 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Common Security Regex Patterns</title>
+  <!-- Embedded CSS -->
+  <style>
+    /* style.css content */
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      /* Light page background */
+      background: #f8f9fa;
+      margin: 0;
+      padding: 30px;
+      color: #212529; /* Darker base text */
+    }
+    h1, h2, h3 {
+      color: #1f2937;
+    }
+    h1 {
+      margin-bottom: 25px;
+      text-align: center;
+    }
+    h2 {
+        margin-top: 40px;
+        margin-bottom: 25px;
+        border-bottom: 1px solid #ced4da; /* Adjusted border */
+        padding-bottom: 10px;
+    }
+    h3 {
+        margin-top: 30px;
+        margin-bottom: 15px;
+        color: #111827;
+        border-bottom: 1px dashed #adb5bd; /* Adjusted border */
+        padding-bottom: 5px;
+    }
+
+    /* Section style with a CLEARLY NON-WHITE background */
+    .pattern-section {
+      /* THIS is the main change - a more noticeable light gray */
+      background: #dee2e6;
+      border: 1px solid #adb5bd; /* Darker border to match */
+      border-radius: 8px;
+      padding: 25px 35px;
+      margin-bottom: 30px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.08); /* Adjusted shadow */
+    }
+    /* Style for individual pattern categories */
+    .pattern-category {
+        margin-bottom: 30px;
+    }
+
+    pre {
+      /* Making pre background lighter for contrast with section */
+      /* Using white now for max contrast against the gray section */
+      background: #ffffff;
+      padding: 12px 15px;
+      border-radius: 5px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      border: 1px solid #ced4da; /* Light border */
+      line-height: 1.5;
+      margin-top: 8px;
+    }
+    code {
+      /* Inline code styling */
+      background-color: #f1f3f5; /* Lighter gray for inline code */
+      padding: 0.2em 0.4em;
+      margin: 0;
+      font-size: 0.9em;
+      border-radius: 3px;
+      font-family: monospace;
+    }
+    pre code { /* Reset background for code inside pre blocks */
+        background: none;
+        padding: 0;
+        margin: 0;
+        font-size: 0.95em;
+        border-radius: 0;
+        font-family: Consolas, 'Courier New', monospace;
+        color: #212529;
+    }
+
+    /* Definition List Styling for Patterns */
+     dt {
+        font-weight: 600;
+        margin-top: 18px;
+        color: #343a40; /* Slightly darker description text */
+    }
+    dd {
+        margin-left: 0;
+        margin-bottom: 18px;
+    }
+    dl {
+        margin-top: 0;
+    }
+    .pattern-section > p:first-of-type { /* Style the introductory paragraph */
+        font-size: 1.05em;
+        color: #495057;
+        line-height: 1.6;
+        margin-bottom: 25px;
+    }
+    .pattern-section > p:last-of-type { /* Style the concluding remark */
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid #adb5bd; /* Adjusted border */
+        font-style: italic;
+        color: #495057; /* Darker italic text */
+        font-size: 0.95em;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Common Security Regex Patterns</h1>
+
+  <div class="pattern-section"> <!-- Main container with the new background -->
+    <p>These are starting points for finding potential vulnerabilities using regex. Real-world patterns often need refinement based on language, frameworks, and context. Manual review is crucial.</p>
+
+    <!-- PHP Specific -->
+    <div class="pattern-category">
+        <h3>PHP Specific</h3>
+        <dl>
+            <dt>Find common superglobals (Input Points)</dt>
+            <dd><pre><code>\$_(GET|POST|REQUEST|COOKIE|SESSION|FILES|ENV|SERVER)\[.*?\]</code></pre></dd>
+
+            <dt>Find common command execution functions</dt>
+            <dd><pre><code>\b(system|exec|shell_exec|passthru|proc_open|popen|pcntl_exec)\s*\(</code></pre></dd>
+
+            <dt>Find PHP <code>eval</code> or <code>assert</code> (Potential Code Injection)</dt>
+            <dd><pre><code>\b(eval|assert)\s*\(</code></pre></dd>
+
+            <dt>Find dynamic file inclusion (Potential LFI/RFI)</dt>
+            <dd><pre><code>\b(include|require)(_once)?\s*\(?\s*['"]?\s*\$?_?(GET|POST|REQUEST|COOKIE)\b</code></pre></dd>
+
+            <dt>Find <code>unserialize</code> (Potential Object Injection)</dt>
+            <dd><pre><code>\b(unserialize)\s*\(</code></pre></dd>
+
+            <dt>Find weak random number generators (Avoid for security contexts)</dt>
+            <dd><pre><code>\b(rand|mt_rand)\s*\(</code></pre></dd>
+
+            <dt>Find basic path traversal patterns in file functions</dt>
+            <dd><pre><code>\b(file_get_contents|fopen|include|require)(_once)?\s*\(?\s*['"].*?(\.\.\/|\.\.\\\\)</code></pre></dd>
+        </dl>
+    </div>
+
+    <!-- SQL Injection Related -->
+    <div class="pattern-category">
+        <h3>SQL Injection Related</h3>
+        <dl>
+            <dt>Find simple SQL keywords in strings (basic check)</dt>
+            <dd><pre><code>["'`]\s*(SELECT|INSERT|UPDATE|DELETE|UNION|DROP|ALTER)\b[^"'`]*["'`]</code></pre></dd>
+
+            <dt>Find SQL keywords in strings potentially concatenated with input</dt>
+            <dd><pre><code>["']\s*\b(SELECT|UPDATE|INSERT|DELETE)\b.*?\s*["']\s*\.\s*\$?_(GET|POST|REQUEST|COOKIE)\b|\$?_(GET|POST|REQUEST|COOKIE)\b\s*\.\s*["']\s*\b(SELECT|UPDATE|INSERT|DELETE)\b</code></pre></dd>
+
+            <dt>Find <code>sprintf</code>/<code>printf</code> with potential user input and SQL keywords (Potential SQLi)</dt>
+            <dd><pre><code>\b(sprintf|printf)\s*\(.*?["'].*?(SELECT|UPDATE|INSERT|DELETE)\b.*?%[sd].*?["'].*?,\s*\$?_(GET|POST|REQUEST|COOKIE)\b</code></pre></dd>
+        </dl>
+    </div>
+
+    <!-- Cross-Site Scripting (XSS) Related -->
+    <div class="pattern-category">
+        <h3>Cross-Site Scripting (XSS) Related</h3>
+        <dl>
+            <dt>Find direct <code>echo</code>/<code>print</code> of superglobals (Potential XSS)</dt>
+            <dd><pre><code>\b(echo|print)\b\s*\(?\s*.*?\$_(GET|POST|REQUEST|COOKIE)\b</code></pre></dd>
+
+            <dt>Find common template markers in output (Potential SSTI/XSS)</dt>
+            <dd><pre><code>[> ]({{.*?}}|{%.*?%}|<%=?.*%>)[\s<]</code></pre></dd>
+        </dl>
+    </div>
+
+    <!-- Java Specific -->
+    <div class="pattern-category">
+        <h3>Java Specific</h3>
+        <dl>
+            <dt>Find Java <code>Runtime.exec</code> (Potential Command Injection)</dt>
+            <dd><pre><code>\bRuntime\.getRuntime\(\)\.exec\s*\(</code></pre></dd>
+
+            <dt>Find Java <code>ObjectInputStream</code> (Potential Deserialization)</dt>
+            <dd><pre><code>\bObjectInputStream\s*\(</code></pre></dd>
+
+            <dt>Find Java XML Parsers (Check configuration for XXE!)</dt>
+            <dd><pre><code>\b(XMLReader|DocumentBuilder|SAXParser|SAXReader|XMLInputFactory)\b</code></pre></dd>
+        </dl>
+    </div>
+
+    <!-- Python Specific -->
+    <div class="pattern-category">
+        <h3>Python Specific</h3>
+        <dl>
+            <dt>Find Python <code>exec</code>/<code>eval</code> (Potential Code Injection)</dt>
+            <dd><pre><code>\b(exec|eval)\s*\(</code></pre></dd>
+
+            <dt>Find Python <code>os.system</code>/<code>subprocess</code> (Potential Command Injection)</dt>
+            <dd><pre><code>\b(os\.system|subprocess\.(call|run|Popen))\s*\(</code></pre></dd>
+
+            <dt>Find Python <code>pickle.load(s)</code> (Potential Deserialization)</dt>
+            <dd><pre><code>\bpickle\.load(s)?\s*\(</code></pre></dd>
+
+            <dt>Find Python Flask/Jinja template markers (Potential SSTI)</dt>
+            <dd><pre><code>{{.*?}}|{%.*?%}</code></pre></dd>
+        </dl>
+    </div>
+
+    <!-- General -->
+    <div class="pattern-category">
+        <h3>General Patterns</h3>
+        <dl>
+            <dt>Find hardcoded credentials/secrets (Simple check, high FP rate!)</dt>
+            <dd><pre><code>\b(password|secret|passwd|api_?key|token|pwd)\b\s*[:=]\s*["'].{5,}?["']</code></pre></dd>
+
+            <dt>Find common SSRF triggers (Functions making HTTP requests)</dt>
+            <dd><pre><code>\b(curl_exec|file_get_contents|fsockopen|Http(Client|Request)|requests\.(get|post)|urllib\.request\.urlopen)\s*\(.*?['"]https?:\/\/</code></pre></dd>
+
+            <dt>Find comments (May contain sensitive info)</dt>
+            <dd><pre><code>\/\/.*|#.*|\/\*[\s\S]*?\*\/|<!--[\s\S]*?--></code></pre></dd>
+        </dl>
+    </div>
+
+    <p><strong>Remember:</strong> Regex is a powerful tool for initial scanning, but findings always require manual review to confirm vulnerabilities and understand context. Patterns often need adjustment based on the specific language, framework, and coding style.</p>
+  </div> <!-- End pattern-section -->
+
+</body>
+</html>
